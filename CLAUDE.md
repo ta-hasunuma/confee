@@ -14,7 +14,7 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 **Specs** (`.kiro/specs/`) - Formalize development process for individual features
 
 ### Active Specifications
-- Check `.kiro/specs/` for active specifications
+- `tech-conference-agent`: compass apiを用いて、最新かつ、おすすめの技術カンファレンスをユーザに提示するエージェント
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
