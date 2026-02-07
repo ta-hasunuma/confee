@@ -56,7 +56,8 @@ class ConfeeAgent:
 
     def create_agent(self) -> Agent:
         model = BedrockModel(
-            model_id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
+            # model_id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
+            model_id="apac.amazon.nova-micro-v1:0",
         )
 
         self._agent = Agent(
@@ -73,6 +74,19 @@ class ConfeeAgent:
 
         result = self._agent(prompt)
 
+        # result.message は {"role": "assistant", "content": [{"text": "..."}]} 形式
+        # テキスト部分のみ抽出して返す
+        message = result.message
+        if isinstance(message, dict) and "content" in message:
+            text_parts = [
+                block["text"]
+                for block in message["content"]
+                if isinstance(block, dict) and "text" in block
+            ]
+            response_text = "\n".join(text_parts)
+        else:
+            response_text = str(message)
+
         return {
-            "response": result.message,
+            "response": response_text,
         }

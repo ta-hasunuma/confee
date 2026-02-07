@@ -32,7 +32,7 @@
   - ローカル確認: `uv run python main.py` でローカルサーバー起動 → `curl -X POST http://localhost:8080/invocations -d '{"prompt":"TypeScriptのカンファレンスある？"}'` で応答確認
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-- [ ] 4. AgentCore Runtimeデプロイ + Lambda Proxy実装
+- [x] 4. AgentCore Runtimeデプロイ + Lambda Proxy実装
   - `infra/`: ECRリポジトリスタックを追加。エージェントコンテナイメージのビルド＆プッシュをCDKで管理
   - `infra/`: AgentCore Runtime作成スタックを追加（boto3 Custom Resource で `create_agent_runtime` を呼び出し。networkMode: PUBLIC、IAMロール設定）
   - `agent/lambda/handler.py`: Lambda Proxy を実装。API Gatewayリクエストを受け取り、boto3 `bedrock-agentcore` クライアントで `invoke_agent_runtime` を呼び出し。session_id はリクエストボディから取得（未指定時はUUID生成）
