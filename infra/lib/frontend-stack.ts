@@ -28,11 +28,23 @@ export class ConfeeFrontendStack extends cdk.Stack {
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
         defaultRootObject: "index.html",
+        errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
+          },
+          {
+            httpStatus: 404,
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
+          },
+        ],
       }
     );
 
     new s3deploy.BucketDeployment(this, "DeployWebsite", {
-      sources: [s3deploy.Source.asset(path.join(__dirname, "../frontend"))],
+      sources: [s3deploy.Source.asset(path.join(__dirname, "../../frontend/dist"))],
       destinationBucket: websiteBucket,
       distribution,
       distributionPaths: ["/*"],

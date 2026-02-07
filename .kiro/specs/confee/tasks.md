@@ -42,7 +42,7 @@
 
 ## フロントエンド
 
-- [ ] 5. React チャットUI実装 + フロントエンドデプロイ
+- [x] 5. React チャットUI実装 + フロントエンドデプロイ
   - `frontend/`: Vite + React + TypeScript + Tailwind CSS プロジェクトを初期化
   - `frontend/src/types.ts`: `ChatMessage`、`ConnpassEvent`、`SuggestedPrompt` 型定義を作成
   - `frontend/src/api/chat.ts`: `POST /chat` APIクライアントを実装。API Gateway の URL は環境変数 `VITE_API_URL` で管理。session_id 生成・管理ロジックを含む
