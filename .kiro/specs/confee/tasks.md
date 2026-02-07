@@ -14,7 +14,7 @@
 
 ## connpass API連携
 
-- [ ] 2. connpass APIツール実装 + ユニットテスト
+- [x] 2. connpass APIツール実装 + ユニットテスト
   - `agent/`: Python プロジェクトを初期化（`pyproject.toml`、`uv` でパッケージ管理、`strands-agents` / `httpx` 等の依存追加）
   - `agent/tools/search_connpass.py`: Strands `@tool` デコレータを使用した `search_connpass` 関数を実装。connpass API v2（`GET /api/v2/events/`）を呼び出し、keyword, keyword_or, ym, ymd, prefecture, order, count パラメータをサポート。APIキーは環境変数 `CONNPASS_API_KEY` から取得。タイムアウト5秒、レート制限（1秒間隔）を考慮
   - `agent/models.py`: `ConnpassEvent` / `ConnpassSearchResult` dataclass を定義
