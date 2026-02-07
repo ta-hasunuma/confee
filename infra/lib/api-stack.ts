@@ -35,11 +35,20 @@ export class ConfeeApiStack extends cdk.Stack {
     });
 
     // Chat Lambda Proxy
+    const chatLambdaPath = path.join(__dirname, "../../agent/lambda");
     const chatFunction = new lambda.Function(this, "ChatFunction", {
       runtime: lambda.Runtime.PYTHON_3_13,
       handler: "handler.handler",
-      code: lambda.Code.fromAsset(path.join(__dirname, "../../agent/lambda"), {
+      code: lambda.Code.fromAsset(chatLambdaPath, {
         exclude: ["tests", "tests/**", "__pycache__"],
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_13.bundlingImage,
+          command: [
+            "bash",
+            "-c",
+            "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output",
+          ],
+        },
       }),
       timeout: cdk.Duration.seconds(30),
       environment: {

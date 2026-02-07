@@ -37,6 +37,19 @@ export class ConfeeAgentCoreStack extends cdk.Stack {
       })
     );
 
+    // CloudWatch Logs 書き込み権限
+    agentRuntimeRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ],
+        resources: ["*"],
+      })
+    );
+
     // ECR イメージ取得権限
     agentImage.repository.grantPull(agentRuntimeRole);
 

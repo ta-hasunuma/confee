@@ -64,12 +64,37 @@ def _on_create(props):
 
 
 def _on_update(event, props):
-    # MVP: update は新規作成と同じ扱い（既存を削除して再作成はしない）
     physical_id = event["PhysicalResourceId"]
+    client = _get_client()
+
+    params = {
+        "agentRuntimeId": physical_id,
+        "agentRuntimeArtifact": json.loads(props["agentRuntimeArtifact"]),
+        "networkConfiguration": json.loads(props["networkConfiguration"]),
+        "roleArn": props["roleArn"],
+    }
+
+    if props.get("description"):
+        params["description"] = props["description"]
+
+    if props.get("environmentVariables"):
+        params["environmentVariables"] = json.loads(
+            props["environmentVariables"]
+        )
+
+    response = client.update_agent_runtime(**params)
+
+    logger.info(
+        "Updating agent runtime: %s (ARN: %s)",
+        response["agentRuntimeId"],
+        response["agentRuntimeArn"],
+    )
+
     return {
-        "PhysicalResourceId": physical_id,
+        "PhysicalResourceId": response["agentRuntimeId"],
         "Data": {
-            "AgentRuntimeId": physical_id,
+            "AgentRuntimeId": response["agentRuntimeId"],
+            "AgentRuntimeArn": response["agentRuntimeArn"],
         },
     }
 

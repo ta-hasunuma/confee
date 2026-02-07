@@ -6,13 +6,17 @@ AWS CDK (TypeScript) によるインフラ定義。
 
 | スタック | リソース | 説明 |
 |---------|---------|------|
-| `ConfeeApiStack` | Lambda + API Gateway REST API | `/health` エンドポイント（MVP後に `/chat` を追加） |
+| `ConfeeAgentCoreStack` | ECR + IAM + Custom Resource + AgentCore Runtime | エージェントコンテナのビルド・デプロイ、AgentCore Runtime の管理 |
+| `ConfeeApiStack` | Lambda + API Gateway REST API + Secrets Manager | `/health`・`/chat` エンドポイント、connpass APIキー管理 |
 | `ConfeeFrontendStack` | S3 + CloudFront + BucketDeployment | React SPA のホスティング |
+
+> 詳細なデプロイ手順は [docs/deployment.md](../docs/deployment.md) を参照。
 
 ## 前提条件
 
-- Node.js v22 以上
-- AWS CLI がインストール済み
+- Node.js v20 以上
+- AWS CLI v2 がインストール済み
+- Docker がインストール済み（エージェントコンテナイメージのビルドに必要）
 - デプロイ先の AWS アカウントへのアクセス権限
 
 ## セットアップ
@@ -62,6 +66,7 @@ npx cdk deploy --all
 ### 個別にデプロイ
 
 ```bash
+npx cdk deploy ConfeeAgentCoreStack
 npx cdk deploy ConfeeApiStack
 npx cdk deploy ConfeeFrontendStack
 ```
@@ -80,28 +85,36 @@ npm test
 
 ## 環境変数一覧
 
-| 変数名 | 必要なタスク | 説明 |
-|--------|------------|------|
-| `AWS_ACCESS_KEY_ID` | 全タスク | AWS クレデンシャル |
-| `AWS_SECRET_ACCESS_KEY` | 全タスク | AWS クレデンシャル |
-| `AWS_DEFAULT_REGION` | 全タスク | デプロイ先リージョン（推奨: `ap-northeast-1`） |
-| `CONNPASS_API_KEY` | タスク2以降 | connpass API v2 の API キー |
+| 変数名 | 必須 | 説明 |
+|--------|------|------|
+| `AWS_ACCESS_KEY_ID` | Yes* | AWS クレデンシャル |
+| `AWS_SECRET_ACCESS_KEY` | Yes* | AWS クレデンシャル |
+| `AWS_DEFAULT_REGION` | Yes | デプロイ先リージョン（推奨: `ap-northeast-1`） |
+| `AWS_PROFILE` | No | AWS CLI プロファイル名（クレデンシャルの代替） |
+
+> \* `AWS_PROFILE` を使用する場合は不要
+
+connpass API キーは AWS Secrets Manager (`confee/connpass-api-key`) で管理。デプロイ後に設定する。
 
 ## ディレクトリ構成
 
 ```
 infra/
 ├── bin/
-│   └── infra.ts              # CDK アプリエントリポイント
+│   └── infra.ts                        # CDK アプリエントリポイント
 ├── lib/
-│   ├── api-stack.ts          # API Gateway + Lambda スタック
-│   └── frontend-stack.ts     # S3 + CloudFront スタック
+│   ├── agentcore-stack.ts              # AgentCore Runtime スタック
+│   ├── api-stack.ts                    # API Gateway + Lambda スタック
+│   └── frontend-stack.ts              # S3 + CloudFront スタック
 ├── lambda/
+│   ├── agentcore-custom-resource/
+│   │   └── index.py                   # AgentCore Runtime 管理 Custom Resource
 │   └── health/
-│       └── index.py          # ヘルスチェック Lambda ハンドラー
+│       └── index.py                   # ヘルスチェック Lambda ハンドラー
 ├── frontend/
-│   └── index.html            # プレースホルダーページ
+│   └── index.html                     # プレースホルダーページ
 └── test/
-    ├── api-stack.test.ts     # API スタックのテスト
-    └── frontend-stack.test.ts # フロントエンドスタックのテスト
+    ├── agentcore-stack.test.ts        # AgentCore スタックのテスト
+    ├── api-stack.test.ts              # API スタックのテスト
+    └── frontend-stack.test.ts         # フロントエンドスタックのテスト
 ```

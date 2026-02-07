@@ -1,8 +1,12 @@
 import json
+import logging
 import os
 import uuid
 
 import boto3
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 AGENT_RUNTIME_ARN = os.environ.get("AGENT_RUNTIME_ARN", "")
 
@@ -60,7 +64,8 @@ def handler(event, context):
                 }
             ),
         }
-    except Exception:
+    except Exception as e:
+        logger.error("AgentCore invocation failed: %s", e, exc_info=True)
         return {
             "statusCode": 503,
             "headers": CORS_HEADERS,
