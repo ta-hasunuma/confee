@@ -24,7 +24,7 @@
 
 ## エージェント実装
 
-- [ ] 3. Strands Agent構築 + ローカル動作確認
+- [x] 3. Strands Agent構築 + ローカル動作確認
   - `agent/agent.py`: `ConfeeAgent` クラスを実装。Strands `Agent` を生成し、`search_connpass` ツールを登録。Bedrock Claude Sonnet をモデルプロバイダーとして設定
   - `agent/agent.py`: システムプロンプトを定義。カンファレンス情報の構造化出力（名前、日時、場所、概要、おすすめ度、申込期限、申込URL）、おすすめ度の付与、推薦理由の明示、期限切れの処理、日本語応答を指示
   - `agent/main.py`: `BedrockAgentCoreApp` エントリポイントを作成。`@app.entrypoint` で `invoke` 関数を定義し、payload から prompt を取得してエージェントを呼び出す
