@@ -11,16 +11,16 @@ export function MessageBubble({ message }: Props) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`rounded-2xl px-4 py-3 max-w-[80%] whitespace-pre-wrap break-words ${
+        className={`rounded-2xl px-5 py-3.5 max-w-[80%] whitespace-pre-wrap break-words shadow-sm ${
           isUser
-            ? "bg-blue-600 text-white rounded-br-sm"
-            : "bg-gray-100 text-gray-900 rounded-bl-sm"
+            ? "bg-cafe-700 text-white rounded-br-sm"
+            : "bg-white text-cafe-900 rounded-bl-sm border border-cafe-200"
         }`}
       >
         {isUser ? (
-          <p>{message.content}</p>
+          <p className="text-base">{message.content}</p>
         ) : (
-          <div className="prose prose-base max-w-none [&_a]:text-blue-600 [&_a]:underline">
+          <div className="prose prose-base max-w-none [&_a]:text-cafe-600 [&_a]:underline">
             <Markdown>{message.content}</Markdown>
           </div>
         )}

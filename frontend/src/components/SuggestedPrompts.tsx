@@ -8,13 +8,13 @@ interface Props {
 
 export function SuggestedPrompts({ prompts, onSelect, disabled }: Props) {
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-2">
+    <div className="flex flex-wrap gap-2 px-4 py-2 bg-white border-t border-cafe-100">
       {prompts.map((p) => (
         <button
           key={p.id}
           onClick={() => onSelect(p.prompt)}
           disabled={disabled}
-          className="rounded-full border border-gray-300 bg-white px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded-full border border-cafe-300 bg-cafe-50 px-4 py-2 text-base text-cafe-700 hover:bg-cafe-100 hover:border-cafe-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {p.label}
         </button>

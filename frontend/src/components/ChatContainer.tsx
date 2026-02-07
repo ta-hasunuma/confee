@@ -66,16 +66,16 @@ export function ChatContainer({ sessionKey }: Props) {
     <div className="flex flex-col h-full">
       {messages.length === 0 && !isLoading ? (
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center text-gray-500">
+          <div className="text-center">
             <img
               src="/image.png"
               alt="confee"
-              className="w-20 h-20 mx-auto mb-4 rounded-xl"
+              className="w-24 h-24 mx-auto mb-6 rounded-2xl shadow-lg"
             />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+            <h2 className="text-2xl font-semibold text-cafe-800 mb-2">
               Confee へようこそ
             </h2>
-            <p className="text-base">
+            <p className="text-base text-cafe-500">
               技術カンファレンスについて質問してみましょう
             </p>
           </div>

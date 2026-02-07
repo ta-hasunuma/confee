@@ -5,20 +5,24 @@ export default function App() {
   const [sessionKey, setSessionKey] = useState(0);
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src="/image.png" alt="confee" className="w-8 h-8 rounded" />
+    <div className="h-screen flex flex-col bg-cafe-50">
+      <header className="bg-cafe-800 px-5 py-4 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-3">
+          <img
+            src="/image.png"
+            alt="confee"
+            className="w-10 h-10 rounded-lg shadow-sm"
+          />
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Confee</h1>
-            <p className="text-base text-gray-500">
+            <h1 className="text-xl font-bold text-cafe-100">Confee</h1>
+            <p className="text-base text-cafe-300">
               Your Tech Conference Partner
             </p>
           </div>
         </div>
         <button
           onClick={() => setSessionKey((k) => k + 1)}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-base text-gray-600 hover:bg-gray-100 transition-colors"
+          className="rounded-lg bg-cafe-700 border border-cafe-600 px-4 py-2 text-base text-cafe-100 hover:bg-cafe-600 transition-colors"
         >
           新しい会話
         </button>
