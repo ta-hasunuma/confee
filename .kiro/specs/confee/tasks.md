@@ -4,7 +4,7 @@
 
 ## プロジェクト基盤
 
-- [ ] 1. プロジェクト構造 + AWS CDK基盤セットアップ
+- [x] 1. プロジェクト構造 + AWS CDK基盤セットアップ
   - モノレポ構造を作成: `agent/`（Python）、`frontend/`（React）、`infra/`（CDK）
   - `infra/`: AWS CDK (TypeScript) プロジェクトを初期化し、基本スタック構成を定義
   - `infra/`: プレースホルダーLambda（ヘルスチェック `/health` のみ返す）+ API Gateway REST APIスタックを作成
