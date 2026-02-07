@@ -1,0 +1,26 @@
+[project]
+name = "confee-agent"
+version = "0.1.0"
+description = "Confee - connpass conference recommendation agent"
+requires-python = ">=3.13"
+dependencies = [
+    "strands-agents>=0.1.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.25.0",
+    "respx>=0.22.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/confee_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["src/confee_agent/tests"]
