@@ -14,6 +14,16 @@ interface ChatErrorResponse {
   error: string;
 }
 
+export class ChatApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ChatApiError";
+    this.status = status;
+  }
+}
+
 export async function sendMessage(
   message: string,
   sessionId: string
@@ -33,7 +43,7 @@ export async function sendMessage(
   if (!res.ok) {
     const errorBody = (await res.json().catch(() => null)) as ChatErrorResponse | null;
     const errorMessage = errorBody?.error ?? `HTTP ${res.status}`;
-    throw new Error(errorMessage);
+    throw new ChatApiError(errorMessage, res.status);
   }
 
   return res.json() as Promise<ChatResponse>;

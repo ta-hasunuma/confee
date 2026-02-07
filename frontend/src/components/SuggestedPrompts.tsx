@@ -4,9 +4,12 @@ interface Props {
   prompts: SuggestedPrompt[];
   onSelect: (prompt: string) => void;
   disabled: boolean;
+  visible: boolean;
 }
 
-export function SuggestedPrompts({ prompts, onSelect, disabled }: Props) {
+export function SuggestedPrompts({ prompts, onSelect, disabled, visible }: Props) {
+  if (!visible) return null;
+
   return (
     <div className="flex flex-wrap gap-2 px-4 py-2 bg-white border-t border-cafe-100">
       {prompts.map((p) => (

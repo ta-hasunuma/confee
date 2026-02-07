@@ -51,7 +51,7 @@
   - ローカル確認: `npm run dev` でローカル開発サーバー起動 → タスク4のAPI GatewayエンドポイントへのAPI呼び出しでチャット送受信確認 → `npm run build && cdk deploy` でAWSデプロイ → CloudFront URLでE2E動作確認
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 6.2_
 
-- [ ] 6. おすすめプロンプト表示 + エラーハンドリング強化
+- [x] 6. おすすめプロンプト表示 + エラーハンドリング強化
   - `frontend/src/data/suggestedPrompts.ts`: おすすめプロンプトデータを定義。キーワード検索例（「TypeScriptのカンファレンスある？」「今月開催のLT会を教えて」等）とあいまい質問例（「面白そうなカンファレンスを見つけてきて」「おすすめの勉強会ある？」等）を含む
   - `frontend/src/components/SuggestedPrompts.tsx`: クリック可能なチップ形式のおすすめプロンプトコンポーネントを実装。クリック時にクエリとして自動送信。会話開始後は非表示に遷移
   - `frontend/src/components/ChatContainer.tsx`: エラー表示を追加。API接続エラー、タイムアウト、503エラー時にフレンドリーなメッセージを表示。セッションタイムアウト時の自動リカバリ（新規session_id生成）
