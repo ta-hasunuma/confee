@@ -4,7 +4,6 @@ import respx
 from confee_agent.models import ConnpassEvent, ConnpassSearchResult
 from confee_agent.tools.search_connpass import (
     CONNPASS_API_URL,
-    _filter_mock_events,
     _search_connpass_api,
     search_connpass,
 )
@@ -240,19 +239,14 @@ class TestSearchConnpassApiErrors:
         assert result["error"] is True
         assert "timeout" in result["message"].lower()
 
-    def test_missing_api_key_falls_back_to_mock(self, monkeypatch):
+    def test_missing_api_key_returns_error(self, monkeypatch):
         monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
 
         result = _search_connpass_api(keyword="TypeScript")
 
-        assert isinstance(result, ConnpassSearchResult)
-        assert result.results_returned >= 1
-        assert all(
-            "typescript" in e.title.lower()
-            or "typescript" in (e.catch or "").lower()
-            or "typescript" in (e.description or "").lower()
-            for e in result.events
-        )
+        assert isinstance(result, dict)
+        assert result["error"] is True
+        assert "CONNPASS_API_KEY" in result["message"]
 
 
 class TestSearchConnpassToolWrapper:
@@ -336,73 +330,94 @@ class TestSearchConnpassApiPrefectureAndDate:
         assert request.url.params["ymd"] == "20260315"
 
 
-class TestMockFallback:
-    """APIキー未設定時のモックフォールバックテスト"""
+class TestExpiredEventFiltering:
+    """申し込み期限切れイベントのフィルタリングテスト"""
 
-    def test_returns_all_mock_events_without_filter(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
+    @respx.mock
+    def test_filters_out_closed_events(self, monkeypatch):
+        monkeypatch.setenv("CONNPASS_API_KEY", "test-api-key")
 
-        result = _filter_mock_events()
+        closed_event = {**SAMPLE_EVENT, "id": 99999, "title": "Closed Event", "open_status": "close"}
+        response_data = {
+            "results_returned": 2,
+            "results_available": 2,
+            "results_start": 1,
+            "events": [SAMPLE_EVENT, closed_event],
+        }
+        respx.get(CONNPASS_API_URL).mock(
+            return_value=httpx.Response(200, json=response_data)
+        )
 
-        assert isinstance(result, ConnpassSearchResult)
-        assert result.results_returned == 10
-        assert result.results_available == 10
-
-    def test_keyword_filters_mock_events(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
-
-        result = _filter_mock_events(keyword="rust")
-
-        assert isinstance(result, ConnpassSearchResult)
-        assert result.results_returned >= 1
-        for event in result.events:
-            text = f"{event.title} {event.catch or ''} {event.description or ''}".lower()
-            assert "rust" in text
-
-    def test_keyword_or_filters_mock_events(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
-
-        result = _filter_mock_events(keyword_or="typescript,python")
+        result = _search_connpass_api(keyword="TypeScript")
 
         assert isinstance(result, ConnpassSearchResult)
-        assert result.results_returned >= 2
-        for event in result.events:
-            text = f"{event.title} {event.catch or ''} {event.description or ''}".lower()
-            assert "typescript" in text or "python" in text
+        assert result.results_returned == 1
+        assert all(e.open_status != "close" for e in result.events)
 
-    def test_no_match_returns_empty(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
+    @respx.mock
+    def test_filters_out_cancelled_events(self, monkeypatch):
+        monkeypatch.setenv("CONNPASS_API_KEY", "test-api-key")
 
-        result = _filter_mock_events(keyword="存在しないキーワードxyz123")
+        cancelled_event = {**SAMPLE_EVENT, "id": 99998, "title": "Cancelled Event", "open_status": "cancelled"}
+        response_data = {
+            "results_returned": 2,
+            "results_available": 2,
+            "results_start": 1,
+            "events": [SAMPLE_EVENT, cancelled_event],
+        }
+        respx.get(CONNPASS_API_URL).mock(
+            return_value=httpx.Response(200, json=response_data)
+        )
+
+        result = _search_connpass_api(keyword="TypeScript")
+
+        assert isinstance(result, ConnpassSearchResult)
+        assert result.results_returned == 1
+        assert all(e.open_status != "cancelled" for e in result.events)
+
+    @respx.mock
+    def test_keeps_open_and_preopen_events(self, monkeypatch):
+        monkeypatch.setenv("CONNPASS_API_KEY", "test-api-key")
+
+        preopen_event = {**SAMPLE_EVENT, "id": 99997, "title": "Preopen Event", "open_status": "preopen"}
+        response_data = {
+            "results_returned": 2,
+            "results_available": 2,
+            "results_start": 1,
+            "events": [SAMPLE_EVENT, preopen_event],
+        }
+        respx.get(CONNPASS_API_URL).mock(
+            return_value=httpx.Response(200, json=response_data)
+        )
+
+        result = _search_connpass_api(keyword="TypeScript")
+
+        assert isinstance(result, ConnpassSearchResult)
+        assert result.results_returned == 2
+        statuses = {e.open_status for e in result.events}
+        assert statuses == {"open", "preopen"}
+
+    @respx.mock
+    def test_all_expired_returns_zero_results(self, monkeypatch):
+        monkeypatch.setenv("CONNPASS_API_KEY", "test-api-key")
+
+        closed_event = {**SAMPLE_EVENT, "id": 99996, "open_status": "close"}
+        cancelled_event = {**SAMPLE_EVENT, "id": 99995, "open_status": "cancelled"}
+        response_data = {
+            "results_returned": 2,
+            "results_available": 2,
+            "results_start": 1,
+            "events": [closed_event, cancelled_event],
+        }
+        respx.get(CONNPASS_API_URL).mock(
+            return_value=httpx.Response(200, json=response_data)
+        )
+
+        result = _search_connpass_api(keyword="TypeScript")
 
         assert isinstance(result, ConnpassSearchResult)
         assert result.results_returned == 0
         assert result.events == []
-
-    def test_pagination_with_count(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
-
-        result = _filter_mock_events(count=3)
-
-        assert result.results_returned == 3
-        assert result.results_available == 10
-
-    def test_pagination_with_start(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
-
-        result = _filter_mock_events(start=9, count=5)
-
-        assert result.results_returned == 2
-        assert result.results_available == 10
-        assert result.results_start == 9
-
-    def test_search_connpass_api_uses_mock_without_key(self, monkeypatch):
-        monkeypatch.delenv("CONNPASS_API_KEY", raising=False)
-
-        result = _search_connpass_api(keyword="Go")
-
-        assert isinstance(result, ConnpassSearchResult)
-        assert result.results_returned >= 1
 
 
 class TestSearchConnpassApiPagination:

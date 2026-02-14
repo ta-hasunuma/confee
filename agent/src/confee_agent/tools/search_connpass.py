@@ -4,7 +4,6 @@ import os
 import httpx
 from strands import tool
 
-from confee_agent.mock_events import MOCK_EVENTS
 from confee_agent.models import ConnpassEvent, ConnpassSearchResult
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ def _get_api_key() -> str:
         logger.warning("Secrets Manager unavailable: %s", e)
 
     # API キーが見つからない場合はキャッシュしない（次回リトライ可能に）
-    logger.warning("No API key found, falling back to mock data")
+    logger.warning("No API key found")
     return ""
 
 
@@ -82,53 +81,8 @@ def _parse_event(event_data: dict) -> ConnpassEvent:
     )
 
 
-def _filter_mock_events(
-    keyword: str = "",
-    keyword_or: str = "",
-    count: int = 10,
-    start: int = 1,
-) -> ConnpassSearchResult:
-    filtered = MOCK_EVENTS
-
-    if keyword:
-        keywords = [k.strip().lower() for k in keyword.split(",")]
-        filtered = [
-            e for e in filtered
-            if all(
-                k in e["title"].lower()
-                or k in (e.get("catch") or "").lower()
-                or k in (e.get("description") or "").lower()
-                or k in (e.get("address") or "").lower()
-                or k in (e.get("place") or "").lower()
-                for k in keywords
-            )
-        ]
-
-    if keyword_or:
-        keywords = [k.strip().lower() for k in keyword_or.split(",")]
-        filtered = [
-            e for e in filtered
-            if any(
-                k in e["title"].lower()
-                or k in (e.get("catch") or "").lower()
-                or k in (e.get("description") or "").lower()
-                or k in (e.get("address") or "").lower()
-                or k in (e.get("place") or "").lower()
-                for k in keywords
-            )
-        ]
-
-    total = len(filtered)
-    start_idx = max(0, start - 1)
-    paginated = filtered[start_idx : start_idx + count]
-    events = [_parse_event(e) for e in paginated]
-
-    return ConnpassSearchResult(
-        results_returned=len(events),
-        results_available=total,
-        results_start=start,
-        events=events,
-    )
+# 申し込み可能なステータス（これ以外は期限切れ・キャンセル等として除外）
+_ACTIVE_OPEN_STATUSES = {"open", "preopen"}
 
 
 def _search_connpass_api(
@@ -143,12 +97,10 @@ def _search_connpass_api(
 ) -> ConnpassSearchResult | dict:
     api_key = _get_api_key()
     if not api_key:
-        return _filter_mock_events(
-            keyword=keyword,
-            keyword_or=keyword_or,
-            count=count,
-            start=start,
-        )
+        return {
+            "error": True,
+            "message": "connpass APIキーが設定されていません。環境変数 CONNPASS_API_KEY を設定してください。",
+        }
 
     headers = {
         "X-API-Key": api_key,
@@ -183,10 +135,16 @@ def _search_connpass_api(
             }
 
         data = response.json()
-        events = [_parse_event(e) for e in data.get("events", [])]
+        all_events = [_parse_event(e) for e in data.get("events", [])]
+
+        # 申し込み期限切れ・キャンセル済みイベントを除外
+        events = [e for e in all_events if e.open_status in _ACTIVE_OPEN_STATUSES]
+        filtered_count = len(all_events) - len(events)
+        if filtered_count > 0:
+            logger.info("Filtered out %d expired/cancelled events", filtered_count)
 
         return ConnpassSearchResult(
-            results_returned=data.get("results_returned", 0),
+            results_returned=len(events),
             results_available=data.get("results_available", 0),
             results_start=data.get("results_start", 1),
             events=events,
