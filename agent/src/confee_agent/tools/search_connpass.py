@@ -18,30 +18,49 @@ _cached_api_key: str | None = None
 
 
 def _get_api_key() -> str:
-    """Secrets Manager → 環境変数の優先順で API キーを取得する。"""
+    """環境変数 → Secrets Manager の優先順で API キーを取得する。"""
     global _cached_api_key
     if _cached_api_key is not None:
         return _cached_api_key
 
-    # 1. Secrets Manager から取得を試みる
+    logger.info("API key retrieval started")
+
+    # 1. 環境変数から取得（優先）
+    api_key = os.environ.get("CONNPASS_API_KEY", "")
+    if api_key:
+        masked = api_key[:4] + "***" + api_key[-4:]
+        logger.info("connpass API key loaded from environment variable: %s", masked)
+        _cached_api_key = api_key
+        return _cached_api_key
+    else:
+        logger.info("CONNPASS_API_KEY env var not set")
+
+    # 2. Secrets Manager から取得（フォールバック）
     try:
         import boto3
 
-        client = boto3.client("secretsmanager")
+        region = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
+        logger.info(
+            "Attempting Secrets Manager: secret=%s, region=%s",
+            CONNPASS_SECRET_NAME,
+            region,
+        )
+        client = boto3.client("secretsmanager", region_name=region)
         resp = client.get_secret_value(SecretId=CONNPASS_SECRET_NAME)
         secret = resp.get("SecretString", "")
         if secret:
-            logger.info("connpass API key loaded from Secrets Manager")
+            masked = secret[:4] + "***" + secret[-4:]
+            logger.info("connpass API key loaded from Secrets Manager: %s", masked)
             _cached_api_key = secret
             return _cached_api_key
+        else:
+            logger.warning("Secrets Manager returned empty SecretString")
     except Exception as e:
-        logger.debug("Secrets Manager unavailable, falling back to env var: %s", e)
+        logger.warning("Secrets Manager unavailable: %s", e)
 
-    # 2. 環境変数から取得
-    _cached_api_key = os.environ.get("CONNPASS_API_KEY", "")
-    if _cached_api_key:
-        logger.info("connpass API key loaded from environment variable")
-    return _cached_api_key
+    # API キーが見つからない場合はキャッシュしない（次回リトライ可能に）
+    logger.warning("No API key found, falling back to mock data")
+    return ""
 
 
 def _parse_event(event_data: dict) -> ConnpassEvent:

@@ -131,6 +131,9 @@ export class ConfeeAgentCoreStack extends cdk.Stack {
           networkMode: "PUBLIC",
         }),
         roleArn: agentRuntimeRole.roleArn,
+        environmentVariables: JSON.stringify({
+          AWS_DEFAULT_REGION: "ap-northeast-1",
+        }),
       },
     });
 
