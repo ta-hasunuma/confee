@@ -1,3 +1,4 @@
+import logging
 import os
 
 import httpx
@@ -6,9 +7,41 @@ from strands import tool
 from confee_agent.mock_events import MOCK_EVENTS
 from confee_agent.models import ConnpassEvent, ConnpassSearchResult
 
+logger = logging.getLogger(__name__)
+
 CONNPASS_API_URL = "https://connpass.com/api/v2/events/"
+CONNPASS_SECRET_NAME = "confee/connpass-api-key"
 USER_AGENT = "confee/1.0"
 TIMEOUT_SECONDS = 5
+
+_cached_api_key: str | None = None
+
+
+def _get_api_key() -> str:
+    """Secrets Manager → 環境変数の優先順で API キーを取得する。"""
+    global _cached_api_key
+    if _cached_api_key is not None:
+        return _cached_api_key
+
+    # 1. Secrets Manager から取得を試みる
+    try:
+        import boto3
+
+        client = boto3.client("secretsmanager")
+        resp = client.get_secret_value(SecretId=CONNPASS_SECRET_NAME)
+        secret = resp.get("SecretString", "")
+        if secret:
+            logger.info("connpass API key loaded from Secrets Manager")
+            _cached_api_key = secret
+            return _cached_api_key
+    except Exception as e:
+        logger.debug("Secrets Manager unavailable, falling back to env var: %s", e)
+
+    # 2. 環境変数から取得
+    _cached_api_key = os.environ.get("CONNPASS_API_KEY", "")
+    if _cached_api_key:
+        logger.info("connpass API key loaded from environment variable")
+    return _cached_api_key
 
 
 def _parse_event(event_data: dict) -> ConnpassEvent:
@@ -89,7 +122,7 @@ def _search_connpass_api(
     start: int = 1,
     count: int = 10,
 ) -> ConnpassSearchResult | dict:
-    api_key = os.environ.get("CONNPASS_API_KEY", "")
+    api_key = _get_api_key()
     if not api_key:
         return _filter_mock_events(
             keyword=keyword,

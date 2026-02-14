@@ -53,6 +53,17 @@ export class ConfeeAgentCoreStack extends cdk.Stack {
     // ECR イメージ取得権限
     agentImage.repository.grantPull(agentRuntimeRole);
 
+    // Secrets Manager 読み取り権限 (connpass API キー)
+    agentRuntimeRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [
+          `arn:aws:secretsmanager:*:${this.account}:secret:confee/connpass-api-key-*`,
+        ],
+      })
+    );
+
     // Custom Resource Lambda: AgentCore Runtime 作成/削除
     const onEventHandler = new lambda.Function(
       this,
