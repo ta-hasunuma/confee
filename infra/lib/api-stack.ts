@@ -50,7 +50,7 @@ export class ConfeeApiStack extends cdk.Stack {
           ],
         },
       }),
-      timeout: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(60),
       environment: {
         AGENT_RUNTIME_ARN: props.agentRuntimeArn,
       },

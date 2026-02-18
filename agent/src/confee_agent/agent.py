@@ -79,8 +79,8 @@ class ConfeeAgent:
 
     def create_agent(self) -> Agent:
         model = BedrockModel(
-            # model_id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
-            model_id="apac.amazon.nova-micro-v1:0",
+            model_id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
+            # model_id="apac.amazon.nova-micro-v1:0",
         )
 
         self._agent = Agent(
