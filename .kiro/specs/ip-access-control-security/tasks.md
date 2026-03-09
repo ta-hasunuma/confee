@@ -18,7 +18,7 @@
 
 ## CloudFront Function による IP フィルタリング
 
-- [ ] 3. CloudFront Function を ConfeeFrontendStack に追加し、テストを書く
+- [x] 3. CloudFront Function を ConfeeFrontendStack に追加し、テストを書く
   - `infra/lib/frontend-stack.ts` に `ALLOWED_IPS` をインポートし、IP ホワイトリストの JavaScript コードを動的生成する
   - `cloudfront.Function`（runtime: JS_2_0）を作成し、Distribution の `defaultBehavior.functionAssociations` に viewer-request として関連付ける
   - `distributionDomainName` プロパティをスタッククラスの public readonly として公開する（タスク 4 で使用）
