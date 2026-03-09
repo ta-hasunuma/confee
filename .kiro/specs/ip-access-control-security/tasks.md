@@ -8,7 +8,7 @@
   - このファイルは後続のタスク 2, 3 で WAF IPSet と CloudFront Function の両方からインポートされる
   - _Requirements: 1.1, 1.2, 6.3_
 
-- [ ] 2. WAF IPSet と WebACL を ConfeeApiStack に追加し、テストを書く
+- [x] 2. WAF IPSet と WebACL を ConfeeApiStack に追加し、テストを書く
   - `infra/lib/api-stack.ts` に `aws-cdk-lib/aws-wafv2` をインポートし、`ALLOWED_IP_CIDRS` を使って `CfnIPSet`（REGIONAL スコープ）を作成する
   - `CfnWebACL`（デフォルトアクション: Block、ルール: IPSet 参照で Allow）を作成し、`visibilityConfig` で CloudWatch メトリクスを有効化する
   - `CfnWebACLAssociation` で WebACL を API Gateway ステージに関連付ける

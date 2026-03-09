@@ -3,8 +3,10 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
+import { ALLOWED_IP_CIDRS } from "./config/allowed-ips";
 
 export interface ConfeeApiStackProps extends cdk.StackProps {
   agentRuntimeArn: string;
@@ -105,6 +107,49 @@ export class ConfeeApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.url,
       description: "API Gateway URL",
+    });
+
+    // WAF IPSet
+    const ipSet = new wafv2.CfnIPSet(this, "AllowedIpSet", {
+      name: "confee-allowed-ips",
+      scope: "REGIONAL",
+      ipAddressVersion: "IPV4",
+      addresses: ALLOWED_IP_CIDRS,
+    });
+
+    // WAF WebACL
+    const webAcl = new wafv2.CfnWebACL(this, "ApiWebAcl", {
+      name: "confee-api-waf",
+      scope: "REGIONAL",
+      defaultAction: { block: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: "confee-api-waf",
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "AllowWhitelistedIPs",
+          priority: 1,
+          action: { allow: {} },
+          statement: {
+            ipSetReferenceStatement: {
+              arn: ipSet.attrArn,
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "confee-allowed-ips",
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+
+    // WAF WebACL → API Gateway ステージ関連付け
+    new wafv2.CfnWebACLAssociation(this, "ApiWafAssociation", {
+      resourceArn: `arn:aws:apigateway:${this.region}::/restapis/${this.api.restApiId}/stages/${this.api.deploymentStage.stageName}`,
+      webAclArn: webAcl.attrArn,
     });
   }
 }

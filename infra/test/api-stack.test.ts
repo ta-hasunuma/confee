@@ -36,7 +36,7 @@ describe("ConfeeApiStack", () => {
     template.hasResourceProperties("AWS::Lambda::Function", {
       Runtime: "python3.13",
       Handler: "handler.handler",
-      Timeout: 30,
+      Timeout: 60,
     });
   });
 
@@ -72,5 +72,59 @@ describe("ConfeeApiStack", () => {
         ]),
       }),
     });
+  });
+
+  test("WAF IPSetが8つのIPアドレス（REGIONAL）で作成される", () => {
+    template.hasResourceProperties("AWS::WAFv2::IPSet", {
+      Scope: "REGIONAL",
+      IPAddressVersion: "IPV4",
+      Addresses: Match.arrayWith([
+        "66.159.192.8/32",
+        "66.159.192.9/32",
+        "66.159.200.79/32",
+        "114.141.123.64/32",
+        "114.141.123.65/32",
+        "137.83.216.7/32",
+        "137.83.216.125/32",
+        "208.127.111.180/32",
+      ]),
+    });
+  });
+
+  test("WAF WebACLのデフォルトアクションがBlockでスコープがREGIONALである", () => {
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      DefaultAction: { Block: {} },
+      Scope: "REGIONAL",
+    });
+  });
+
+  test("WAF WebACLにIPセット参照のAllowルールが含まれる", () => {
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AllowWhitelistedIPs",
+          Action: { Allow: {} },
+          Statement: {
+            IPSetReferenceStatement: Match.objectLike({
+              Arn: Match.anyValue(),
+            }),
+          },
+        }),
+      ]),
+    });
+  });
+
+  test("WAF WebACLでCloudWatchメトリクスが有効化されている", () => {
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      VisibilityConfig: {
+        CloudWatchMetricsEnabled: true,
+        MetricName: "confee-api-waf",
+        SampledRequestsEnabled: true,
+      },
+    });
+  });
+
+  test("WAF WebACLがAPI Gatewayに関連付けられる", () => {
+    template.resourceCountIs("AWS::WAFv2::WebACLAssociation", 1);
   });
 });
