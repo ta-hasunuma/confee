@@ -86,6 +86,22 @@ export class ConfeeApiStack extends cdk.Stack {
     const chat = this.api.root.addResource("chat");
     chat.addMethod("POST", new apigateway.LambdaIntegration(chatFunction));
 
+    // API Gateway 自身のエラーレスポンスにも CORS ヘッダーを付与
+    this.api.addGatewayResponse("Default4xx", {
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Headers": "'Content-Type'",
+      },
+    });
+    this.api.addGatewayResponse("Default5xx", {
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      responseHeaders: {
+        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Headers": "'Content-Type'",
+      },
+    });
+
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.url,
       description: "API Gateway URL",
