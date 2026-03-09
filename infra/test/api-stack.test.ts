@@ -9,6 +9,7 @@ describe("ConfeeApiStack", () => {
     const app = new cdk.App();
     const stack = new ConfeeApiStack(app, "TestApiStack", {
       agentRuntimeArn: "arn:aws:bedrock:ap-northeast-1:123456789012:agent-runtime/test-id",
+      cloudFrontDomainName: "d1234567890.cloudfront.net",
     });
     template = Template.fromStack(stack);
   });
@@ -126,5 +127,20 @@ describe("ConfeeApiStack", () => {
 
   test("WAF WebACLがAPI Gatewayに関連付けられる", () => {
     template.resourceCountIs("AWS::WAFv2::WebACLAssociation", 1);
+  });
+
+  test("Gateway ResponseのCORS AllowOriginがCloudFrontドメインに設定される", () => {
+    template.hasResourceProperties("AWS::ApiGateway::GatewayResponse", {
+      ResponseType: "DEFAULT_4XX",
+      ResponseParameters: Match.objectLike({
+        "gatewayresponse.header.Access-Control-Allow-Origin": "'https://d1234567890.cloudfront.net'",
+      }),
+    });
+    template.hasResourceProperties("AWS::ApiGateway::GatewayResponse", {
+      ResponseType: "DEFAULT_5XX",
+      ResponseParameters: Match.objectLike({
+        "gatewayresponse.header.Access-Control-Allow-Origin": "'https://d1234567890.cloudfront.net'",
+      }),
+    });
   });
 });

@@ -28,7 +28,7 @@
 
 ## CORS 厳格化とスタック依存関係
 
-- [ ] 4. CORS 設定を厳格化し、スタック依存関係を更新する
+- [x] 4. CORS 設定を厳格化し、スタック依存関係を更新する
   - `infra/lib/api-stack.ts` の `ConfeeApiStackProps` に `cloudFrontDomainName: string` を追加する
   - `defaultCorsPreflightOptions.allowOrigins` を `Cors.ALL_ORIGINS` から `[https://${props.cloudFrontDomainName}]` に変更する
   - `addGatewayResponse` の `Access-Control-Allow-Origin` ヘッダーを `'*'` から CloudFront ドメインの URL に変更する

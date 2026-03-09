@@ -10,6 +10,7 @@ import { ALLOWED_IP_CIDRS } from "./config/allowed-ips";
 
 export interface ConfeeApiStackProps extends cdk.StackProps {
   agentRuntimeArn: string;
+  cloudFrontDomainName: string;
 }
 
 export class ConfeeApiStack extends cdk.Stack {
@@ -71,10 +72,11 @@ export class ConfeeApiStack extends cdk.Stack {
     connpassApiKeySecret.grantRead(chatFunction);
 
     // API Gateway
+    const allowOrigin = `https://${props.cloudFrontDomainName}`;
     this.api = new apigateway.RestApi(this, "ConfeeApi", {
       restApiName: "confee-api",
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowOrigins: [allowOrigin],
         allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: ["Content-Type"],
       },
@@ -92,14 +94,14 @@ export class ConfeeApiStack extends cdk.Stack {
     this.api.addGatewayResponse("Default4xx", {
       type: apigateway.ResponseType.DEFAULT_4XX,
       responseHeaders: {
-        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Origin": `'${allowOrigin}'`,
         "Access-Control-Allow-Headers": "'Content-Type'",
       },
     });
     this.api.addGatewayResponse("Default5xx", {
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders: {
-        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Origin": `'${allowOrigin}'`,
         "Access-Control-Allow-Headers": "'Content-Type'",
       },
     });
