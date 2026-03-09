@@ -17,6 +17,7 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 ### Active Specifications
 
 - `confee`: Compass APIを使用してユーザに技術カンファレンス情報を提示し、ユーザのスキルに基づいておすすめを提供するエージェント
+- `ip-access-control-security`: IPホワイトリストによるCloudFrontおよびAPIGatewayのアクセス制限と社内システム向けセキュリティ強化
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
