@@ -2,7 +2,7 @@
 
 ## IP アドレス定数と WAF リソース
 
-- [ ] 1. IP アドレスホワイトリスト定数を作成する
+- [x] 1. IP アドレスホワイトリスト定数を作成する
   - `infra/lib/config/allowed-ips.ts` を新規作成し、`ALLOWED_IPS` (生 IP 配列) と `ALLOWED_IP_CIDRS` (/32 CIDR 配列) をエクスポートする
   - 8つの IP アドレスを要件ドキュメントの順序で定義する
   - このファイルは後続のタスク 2, 3 で WAF IPSet と CloudFront Function の両方からインポートされる
