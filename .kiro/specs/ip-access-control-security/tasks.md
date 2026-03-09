@@ -39,7 +39,7 @@
 
 ## 統合検証
 
-- [ ] 5. cdk synth による全スタック統合検証
+- [x] 5. cdk synth による全スタック統合検証
   - `npx cdk synth` を実行し、全スタック（ConfeeAgentCoreStack、ConfeeFrontendStack、ConfeeApiStack）のテンプレートが正常に生成されることを確認する
   - 生成された CloudFormation テンプレートで WAF リソースが ap-northeast-1 に、CloudFront Function が正しく配置されていることを目視確認する
   - 全テスト (`npm test`) を再実行し、すべてのテストがパスすることを最終確認する
